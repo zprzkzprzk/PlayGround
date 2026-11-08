@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#120d25">
+  <meta name="description" content="GUNRUSH: Mutant Mile — a fast, lightweight auto-fire arcade shooter. Swipe to aim, blast mutant hordes, and take down giant bosses.">
+  <title>GUNRUSH — Mutant Mile</title>
+  <link rel="preload" href="assets/fonts/bungee.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-scene="menu">
+  <canvas id="game" aria-label="GUNRUSH gameplay area"></canvas>
+  <div class="world-shade" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <div id="coinLayer" class="coin-layer" aria-hidden="true"></div>
+
+  <header id="gameHud" class="game-hud" aria-hidden="true">
+    <div class="hud-top">
+      <div class="sector-pill">
+        <span class="sector-kicker">SECTOR <b id="sectorNum">01</b></span>
+        <strong id="sectorName">MUTANT MILE</strong>
+      </div>
+      <div class="hud-actions">
+        <div class="coin-pill" title="Coins">
+          <svg class="coin-glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffd93d"/><circle cx="12" cy="12" r="6.3" fill="#f6a91b"/><path d="M12 7.6l1.35 2.75 3.05.44-2.2 2.14.52 3.02L12 14.52l-2.72 1.43.52-3.02-2.2-2.14 3.05-.44z" fill="#fff5bf"/></svg>
+          <span id="coinCount">0</span>
+        </div>
+        <button id="muteBtn" class="icon-button" type="button" aria-label="Toggle sound">
+          <svg class="sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.2a5 5 0 010 7.6M18.4 5.6a8.4 8.4 0 010 12.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg class="sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6m0-6l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button id="pauseBtn" class="icon-button pause-button" type="button" aria-label="Pause">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="center-hud">
+      <div id="waveHud" class="wave-hud">
+        <div class="wave-copy"><span id="waveLabel">WAVE 1</span><span id="wavePercent">0%</span></div>
+        <div class="wave-track"><div id="waveFill"></div></div>
+      </div>
+      <div id="bossHud" class="boss-hud">
+        <div class="boss-heading"><span id="bossTag">MEGA MUTANT</span><strong id="bossName">GOREFANG</strong></div>
+        <div class="boss-track"><div id="bossFill"></div><div class="boss-glint"></div></div>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="health-card">
+        <div class="health-top"><span>ARMOR</span><b id="hpText">120</b></div>
+        <div class="health-track"><div id="hpFill"></div><div class="health-shine"></div></div>
+      </div>
+      <div id="comboHud" class="combo-hud">
+        <span class="combo-x">×<b id="comboCount">2</b></span>
+        <span class="combo-label">COMBO</span>
+        <div class="combo-track"><div id="comboFill"></div></div>
+      </div>
+      <div class="weapon-card">
+        <span class="weapon-kicker">WEAPON</span>
+        <strong id="hudWeapon">RIPPER</strong>
+        <span id="hudWeaponTag">BALANCED AUTO</span>
+      </div>
+    </div>
+
+    <div id="aimHint" class="aim-hint">
+      <span class="swipe-mark">↔</span>
+      <span><b>SWIPE TO AIM</b> · AUTO-FIRE IS ALWAYS ON</span>
+    </div>
+  </header>
+
+  <div id="stageBanner" class="stage-banner" aria-live="polite">
+    <span id="bannerKicker">SECTOR 01</span>
+    <strong id="bannerTitle">MUTANT MILE</strong>
+    <em id="bannerSub">SURVIVE THE HORDE</em>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="titleScreen" class="screen title-screen show">
+    <div class="title-brand">
+      <div class="mini-mark"><span class="mark-slash"></span>GR</div>
+      <span class="brand-note">ARCADE SURVIVAL</span>
+    </div>
+    <div class="title-content">
+      <div class="title-kicker"><span></span> THE HORDE NEVER STOPS <span></span></div>
+      <div class="logo-wrap">
+        <h1 class="game-logo" aria-label="GUNRUSH">GUN<span>RUSH</span></h1>
+        <div class="logo-ribbon">MUTANT MILE</div>
+      </div>
+      <p class="title-tagline">ONE TRIGGER. ZERO MERCY.<br><b>Swipe to aim. The gun does the rest.</b></p>
+      <div class="title-actions">
+        <button id="playBtn" class="mega-button" type="button">
+          <span class="play-triangle"></span>
+          <span class="mega-label">PLAY</span>
+          <span class="mega-sub">SECTOR <b id="titleSector">01</b></span>
+        </button>
+        <button id="titleArmoryBtn" class="secondary-button" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9l2-2h5v4h-3l-2 2H9v5H6v-5H4z" fill="currentColor"/><circle cx="7" cy="15" r="2.2" fill="currentColor"/></svg>
+          ARMORY
+          <span id="titleCoinCount" class="button-coins">0</span>
+        </button>
+      </div>
+      <div class="control-strip">
+        <span><i class="dot dot-cyan"></i>SWIPE TO AIM</span>
+        <span><i class="dot dot-yellow"></i>AUTO BLAZE</span>
+        <span><i class="dot dot-pink"></i>LOOT &amp; UPGRADE</span>
+      </div>
+    </div>
+    <div class="title-bottom">
+      <span>ENDLESS SECTORS</span>
+      <span class="title-bottom-mid">ONE-THUMB MAYHEM</span>
+      <span>LIGHTWEIGHT · 60 FPS</span>
+    </div>
+  </section>
+
+  <section id="pauseScreen" class="screen modal-screen">
+    <div class="modal-card pause-card">
+      <span class="eyebrow">TAKE A BREATH</span>
+      <h2>PAUSED</h2>
+      <p class="modal-copy">The mutants can wait. Your trigger finger probably needs a second.</p>
+      <div class="modal-actions">
+        <button id="resumeBtn" class="primary-button" type="button">RESUME</button>
+        <button id="pauseRestartBtn" class="ghost-button" type="button">RESTART SECTOR</button>
+        <button id="pauseQuitBtn" class="text-button" type="button">QUIT TO TITLE</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="clearScreen" class="screen modal-screen">
+    <div class="modal-card clear-card">
+      <div class="result-burst" aria-hidden="true"></div>
+      <span class="eyebrow">SECTOR <b id="clearSector">01</b> CLEARED</span>
+      <h2>SECTOR<br><span>CLEARED</span></h2>
+      <p id="clearBossLine" class="modal-copy">GOREFANG has been erased.</p>
+      <div class="result-stats">
+        <div><span>KILLS</span><b id="clearKills">0</b></div>
+        <div><span>COINS LOOTED</span><b id="clearCoins">0</b></div>
+        <div><span>BEST COMBO</span><b id="clearCombo">0</b></div>
+      </div>
+      <div class="modal-actions">
+        <button id="nextSectorBtn" class="primary-button" type="button">NEXT SECTOR <span>→</span></button>
+        <button id="clearArmoryBtn" class="secondary-button wide" type="button">SPEND COINS IN ARMORY</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="deadScreen" class="screen modal-screen">
+    <div class="modal-card dead-card">
+      <span class="eyebrow danger">SIGNAL LOST</span>
+      <h2>MUNCHED.</h2>
+      <p class="modal-copy">The mutants got through. Your coins made it out, though. Spend them and hit the road again.</p>
+      <div class="result-stats compact">
+        <div><span>SECTOR</span><b id="deadSector">01</b></div>
+        <div><span>KILLS</span><b id="deadKills">0</b></div>
+        <div><span>COINS BANKED</span><b id="deadCoins">0</b></div>
+      </div>
+      <div class="modal-actions">
+        <button id="retryBtn" class="primary-button" type="button">RETRY SECTOR</button>
+        <button id="deadArmoryBtn" class="secondary-button wide" type="button">POWER UP IN ARMORY</button>
+        <button id="deadHomeBtn" class="text-button" type="button">TITLE SCREEN</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="armoryScreen" class="screen armory-screen">
+    <div class="armory-panel">
+      <header class="armory-head">
+        <div>
+          <span class="eyebrow">THE WORKSHOP</span>
+          <h2>ARMORY</h2>
+        </div>
+        <div class="armory-head-right">
+          <div class="coin-pill large">
+            <svg class="coin-glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffd93d"/><circle cx="12" cy="12" r="6.3" fill="#f6a91b"/><path d="M12 7.6l1.35 2.75 3.05.44-2.2 2.14.52 3.02L12 14.52l-2.72 1.43.52-3.02-2.2-2.14 3.05-.44z" fill="#fff5bf"/></svg>
+            <span id="armoryCoins">0</span>
+          </div>
+          <button id="armoryCloseBtn" class="close-button" type="button" aria-label="Close armory">✕</button>
+        </div>
+      </header>
+      <p class="armory-intro">Spend it all. The next sector is worse.</p>
+      <div class="section-label"><span>WEAPON LOADOUT</span><i></i></div>
+      <div id="weaponList" class="weapon-list"></div>
+      <div class="section-label"><span>PERMANENT UPGRADES</span><i></i></div>
+      <div id="upgradeList" class="upgrade-list"></div>
+      <div class="armory-foot">
+        <span>UPGRADES STACK ACROSS EVERY RUN</span>
+        <button id="armoryDoneBtn" class="primary-button small" type="button">BACK TO THE FIGHT</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="rotateHint" class="rotate-hint" aria-hidden="true">
+    <div class="rotate-icon">↻</div>
+    <strong>BEST IN PORTRAIT</strong>
+    <span>Hold your device upright for maximum mayhem.</span>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
